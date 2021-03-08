@@ -6,9 +6,9 @@
 #SERVER_NAME below MUST mach the DIRECTORY created on your droplet in the /var folder
 SERVER_NAME="chat-server"
 
-DROPLET_URL="138.68.100.110"
+DROPLET_URL="142.93.229.19"
 # Change the root below to the non-root user you have setup:
-DROPLET_USER="root"
+DROPLET_USER="benjamin"
 
 
 echo "##############################"
