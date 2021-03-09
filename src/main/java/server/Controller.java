@@ -1,25 +1,29 @@
 package server;
 
-import java.io.BufferedReader;
-import java.io.PrintWriter;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Controller implements Runnable{
-    ServerSocket serverSocket;
-    Socket clientSocket;
-    PrintWriter outM;
-    BufferedReader in;
+    protected ServerSocket serverSocket;
 
-    public Controller(ServerSocket serverSocket, Socket clientSocket, PrintWriter outM, BufferedReader in) {
+    public Controller(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
-        this.clientSocket = clientSocket;
-        this.outM = outM;
-        this.in = in;
     }
 
     @Override
     public void run() {
-
+        while(true) {
+            Thread tmpThread = null;
+            try {
+                Socket tmpSocket = serverSocket.accept();
+                if(tmpSocket != null) {
+                    tmpThread = new Thread(new ClientHandler(tmpSocket));
+                    tmpThread.start();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
