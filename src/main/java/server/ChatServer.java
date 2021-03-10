@@ -2,10 +2,9 @@ package server;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.net.UnknownHostException;
 
 public class ChatServer {
-    public static void main(String[] args) throws UnknownHostException {
+    public static void main(String[] args) {
         try {
             if (args.length == 1) {
                 int port = Integer.parseInt(args[0]);

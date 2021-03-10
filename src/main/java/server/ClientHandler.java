@@ -15,6 +15,7 @@ public class ClientHandler implements Runnable {
     protected boolean runStatus;
     protected String user;
     protected boolean connected = false;
+    protected int counter = 0;
     public static ConcurrentHashMap<String, PrintWriter> clients = new ConcurrentHashMap<>();
 
     public ClientHandler(Socket clientSocket) {
@@ -71,9 +72,9 @@ public class ClientHandler implements Runnable {
                 if(!connected) {
                     if(args.get(0) != null) {
                         user = args.get(0);
-                        connected = true;
                         clients.put(user, out);
                         onlineCommand();
+                        connected = true;
                         out.println("You are now connected");
                     } else {
                         out.println("CLOSE#2");
@@ -82,21 +83,89 @@ public class ClientHandler implements Runnable {
                     out.println("You are already connected");
                 }
                 break;
+            case "SEND":
+                if(connected) {
+                    if(args.get(0) != null && args.get(1) != null) {
+                        String usersRecevingMsg = args.get(0);
+                        String message = args.get(1);
+                        sendCommand(usersRecevingMsg, message);
+                    } else {
+                        out.println("Invalid arguments");
+                    }
+                }
+                break;
+            case "CLOSE":
+                connected = false;
+                clients.remove(user);
+                try {
+                    clientSocket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                runStatus = false;
+                break;
             default:
                 break;
         }
     }
 
-    public boolean isConnected() {
-        return connected;
-    }
 
     protected void onlineCommand() {
-      clients.forEach((k, v) -> {
-          v.println("ONLINE:");
-          clients.forEach((k_, v_) -> {
-              v.println(k_);
-          });
-      });
+        int maxClients = clients.size();
+        clients.forEach((k, v) -> {
+            counter = 0;
+            v.print("ONLINE#");
+            clients.forEach((k_, v_) -> {
+                v.print(k_);
+                counter++;
+                if(counter != maxClients) {
+                    v.print(",");
+                } else {
+                    v.println();
+                }
+            });
+        });
+    }
+
+    protected void sendCommand(String receivers, String message) {
+        int indexStart = 0;
+        ArrayList<String> receiversProccesed = new ArrayList<>();
+        boolean sendToEveryone = false;
+
+        if(receivers.equals("*")) {
+            sendToEveryone = true;
+        } else {
+            while(receivers.indexOf(",", indexStart + 1 ) != -1) {
+                if(indexStart == 0) {
+                    receiversProccesed.add(receivers.substring(indexStart, receivers.indexOf(",", indexStart)));
+                } else {
+                    receiversProccesed.add(receivers.substring(indexStart + 1, receivers.indexOf(",", indexStart + 1)));
+                }
+
+                indexStart = receivers.indexOf(",", indexStart + 1);
+            }
+        }
+
+        if(indexStart == 0) {
+            receiversProccesed.add(receivers);
+        } else {
+            receiversProccesed.add(receivers.substring(indexStart + 1));
+        }
+
+        if(sendToEveryone) {
+            clients.forEach((k, v) -> {
+                if(k.toUpperCase() != user.toUpperCase()) {
+                    v.println("MESSAGE#" + user + "#" + message);
+                }
+            });
+        } else {
+            for(String userReceiving_: receiversProccesed) {
+                clients.forEach((k, v) -> {
+                    if(userReceiving_.toUpperCase().equals(k.toUpperCase())) {
+                        v.println("MESSAGE#" + user + "#" +  message);
+                    }
+                });
+            }
+        }
     }
 }
