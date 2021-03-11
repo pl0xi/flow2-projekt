@@ -70,12 +70,23 @@ public class ClientHandler implements Runnable {
         switch (command.toUpperCase()) {
             case "CONNECT":
                 if(!connected) {
-                    if(args.get(0) != null) {
-                        user = args.get(0);
-                        clients.put(user, out);
-                        onlineCommand();
-                        connected = true;
-                        out.println("You are now connected");
+                    if(args.size() == 1) {
+                        final boolean[] userFound = {false};
+                        clients.forEach((k,v) -> {
+                            if(args.get(0).toUpperCase().equals(k.toUpperCase())) {
+                                userFound[0] = true;
+                            }
+                        });
+
+                        if(!userFound[0]) {
+                            user = args.get(0);
+                            clients.put(user, out);
+                            onlineCommand();
+                            connected = true;
+                            out.println("You are now connected");
+                        } else {
+                            out.println("Username is occupied");
+                        }
                     } else {
                         out.println("CLOSE#2");
                     }
@@ -85,7 +96,7 @@ public class ClientHandler implements Runnable {
                 break;
             case "SEND":
                 if(connected) {
-                    if(args.get(0) != null && args.get(1) != null) {
+                    if(args.size() == 2) {
                         String usersRecevingMsg = args.get(0);
                         String message = args.get(1);
                         sendCommand(usersRecevingMsg, message);
