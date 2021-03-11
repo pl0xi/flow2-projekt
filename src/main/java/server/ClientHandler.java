@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ClientHandler implements Runnable {
@@ -39,19 +38,7 @@ public class ClientHandler implements Runnable {
                     int letterPos = tmpInput.indexOf("#");
                     if(letterPos != -1) {
                         String command = tmpInput.substring(0, letterPos);
-
-                        ArrayList args = new ArrayList<String>();
-                        int indexStart = letterPos;
-                        while(indexStart != -1) {
-                            if(tmpInput.indexOf("#", indexStart + 1) != -1) {
-                                args.add(tmpInput.substring(indexStart + 1, tmpInput.indexOf("#", indexStart + 1)));
-                            } else {
-                                args.add(tmpInput.substring(indexStart + 1));
-                            }
-
-                            indexStart = tmpInput.indexOf("#", indexStart + 1);
-                        }
-
+                        String args [] = tmpInput.substring(letterPos + 1).split("#");
                         commandController(command, args);
                     }
                 } else if (tmpInput == null) {
@@ -66,20 +53,20 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    protected void commandController(String command, ArrayList<String> args) {
+    protected void commandController(String command, String [] args) {
         switch (command.toUpperCase()) {
             case "CONNECT":
                 if(!connected) {
-                    if(args.size() == 1) {
+                    if(args.length == 1) {
                         final boolean[] userFound = {false};
                         clients.forEach((k,v) -> {
-                            if(args.get(0).toUpperCase().equals(k.toUpperCase())) {
+                            if(args[0].toUpperCase().equals(k.toUpperCase())) {
                                 userFound[0] = true;
                             }
                         });
 
                         if(!userFound[0]) {
-                            user = args.get(0);
+                            user = args[0];
                             clients.put(user, out);
                             onlineCommand();
                             connected = true;
@@ -96,9 +83,9 @@ public class ClientHandler implements Runnable {
                 break;
             case "SEND":
                 if(connected) {
-                    if(args.size() == 2) {
-                        String usersRecevingMsg = args.get(0);
-                        String message = args.get(1);
+                    if(args.length == 2) {
+                        String usersRecevingMsg = args[0];
+                        String message = args[1];
                         sendCommand(usersRecevingMsg, message);
                     } else {
                         out.println("Invalid arguments");
@@ -139,29 +126,15 @@ public class ClientHandler implements Runnable {
     }
 
     protected void sendCommand(String receivers, String message) {
-        int indexStart = 0;
-        ArrayList<String> receiversProccesed = new ArrayList<>();
+        String [] receiversProccesed = new String[0];
         boolean sendToEveryone = false;
 
         if(receivers.equals("*")) {
             sendToEveryone = true;
         } else {
-            while(receivers.indexOf(",", indexStart + 1 ) != -1) {
-                if(indexStart == 0) {
-                    receiversProccesed.add(receivers.substring(indexStart, receivers.indexOf(",", indexStart)));
-                } else {
-                    receiversProccesed.add(receivers.substring(indexStart + 1, receivers.indexOf(",", indexStart + 1)));
-                }
-
-                indexStart = receivers.indexOf(",", indexStart + 1);
-            }
+            receiversProccesed = receivers.split(",");
         }
-
-        if(indexStart == 0) {
-            receiversProccesed.add(receivers);
-        } else {
-            receiversProccesed.add(receivers.substring(indexStart + 1));
-        }
+        
 
         if(sendToEveryone) {
             clients.forEach((k, v) -> {
