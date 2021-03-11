@@ -17,3 +17,7 @@ Vi har brugt code with me, forbundet til Benjamin (pl0xi)
 - Framework (Benjamin)
 - Online command (Daniel)
 - Send command (Firat)
+
+## Server
+IP: 142.93.229.19
+PORT: 57388
