@@ -154,7 +154,7 @@ public class ClientHandler implements Runnable {
 
         if(sendToEveryone) {
             clients.forEach((k, v) -> {
-                if(k.toUpperCase() != user.toUpperCase()) {
+                if(!k.toUpperCase().equals(user.toUpperCase())) {
                     v.println("MESSAGE#" + user + "#" + message);
                 }
             });
